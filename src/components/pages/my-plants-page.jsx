@@ -73,7 +73,7 @@ export default function MyPlantsPage({ setPage }) {
               status={plant.status}
               statusColor={getStatusColor(plant.status)}
               image={plant.image}
-              addedDays={formatDateAdded(plant.dateAdded)}
+              dateAdded={plant.dateAdded}
               weatherItems={[
                 { icon: <Sun />, label: plant.weather?.sunlight || 'Sunny' },
                 { icon: <Droplet />, label: plant.weather?.watered ? "Watered" : "Needs Water" },

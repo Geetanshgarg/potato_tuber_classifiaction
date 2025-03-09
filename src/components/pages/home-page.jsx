@@ -1,10 +1,75 @@
 "use client"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Camera, Upload, Leaf, Video, CheckCircle, AlertTriangle } from "lucide-react"
+import { Camera, Upload, Leaf, Video, CheckCircle, AlertTriangle, AlertCircle } from "lucide-react"
 import ActionButton from "@/components/custom/action-button"
 import ActivityItem from "@/components/custom/activity-item"
 
 export default function HomePage({ setPage }) {
+  const [recentActivities, setRecentActivities] = useState([]);
+
+  // Load saved plants data on component mount
+  useEffect(() => {
+    try {
+      // Get plants from localStorage
+      const savedPlants = JSON.parse(localStorage.getItem('myPlants') || '[]');
+      console.log("Found", savedPlants.length, "saved plants");
+      
+      // Format the most recent 3 plants as activity items
+      const activities = savedPlants.slice(0, 3).map(plant => {
+        // Determine the icon based on plant status
+        let icon;
+        const status = plant.status?.toLowerCase() || '';
+        
+        if (status.includes("healthy")) {
+          icon = <CheckCircle className="w-6 h-6 text-green-500" />;
+        } else if (status.includes("early blight")) {
+          icon = <AlertTriangle className="w-6 h-6 text-yellow-500" />;
+        } else if (status.includes("late blight")) {
+          icon = <AlertCircle className="w-6 h-6 text-red-500" />;
+        } else if (status.includes("bacteria")) {
+          icon = <AlertTriangle className="w-6 h-6 text-orange-500" />;
+        } else if (status.includes("fungi")) {
+          icon = <AlertTriangle className="w-6 h-6 text-purple-500" />;
+        } else if (status.includes("pest")) {
+          icon = <AlertTriangle className="w-6 h-6 text-blue-500" />;
+        } else if (status.includes("virus")) {
+          icon = <AlertCircle className="w-6 h-6 text-red-500" />;
+        } else {
+          icon = <Leaf className="w-6 h-6 text-gray-500" />;
+        }
+        
+        // Format date
+        const date = new Date(plant.dateAdded || new Date());
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        let timeText = '';
+        if (date.toDateString() === today.toDateString()) {
+          timeText = `Today, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+        } else if (date.toDateString() === yesterday.toDateString()) {
+          timeText = `Yesterday, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+        } else {
+          timeText = date.toLocaleDateString() + ', ' + date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        }
+        
+        return {
+          icon,
+          text: `${plant.status || 'Unknown condition'} detected`,
+          time: timeText,
+          // Add plant ID to allow navigation to details if needed
+          plantId: plant.id
+        };
+      });
+      
+      setRecentActivities(activities);
+    } catch (err) {
+      console.error("Error loading plant data:", err);
+      setRecentActivities([]);
+    }
+  }, []);
+
   return (
     <>
       <Card className="bg-white/80 backdrop-blur-sm shadow-lg mb-6">
@@ -21,7 +86,7 @@ export default function HomePage({ setPage }) {
             <ActionButton
               icon={<Leaf className="w-8 h-8" />}
               label="My Plants"
-              onClick={() => setPage("plants", { setPage })} />
+              onClick={() => setPage("plants")} />
             <ActionButton
               icon={<Video className="w-8 h-8" />}
               label="Guide"
@@ -33,18 +98,18 @@ export default function HomePage({ setPage }) {
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4 text-center text-green-800">Recent Activity</h2>
           <div className="space-y-4">
-            <ActivityItem
-              icon={<CheckCircle className="w-6 h-6 text-green-500" />}
-              text="Healthy Potato Plant"
-              time="Today, 10:30 AM" />
-            <ActivityItem
-              icon={<AlertTriangle className="w-6 h-6 text-yellow-500" />}
-              text="Early Blight Detected"
-              time="Yesterday, 4:15 PM" />
-            <ActivityItem
-              icon={<Video className="w-6 h-6 text-blue-500" />}
-              text="Watched Treatment Guide"
-              time="2 days ago" />
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity, index) => (
+                <ActivityItem
+                  key={index}
+                  icon={activity.icon}
+                  text={activity.text}
+                  time={activity.time}
+                />
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-6">No recent activity yet. Start by scanning a plant!</p>
+            )}
           </div>
         </CardContent>
       </Card>

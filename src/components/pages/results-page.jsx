@@ -10,6 +10,7 @@ export default function ResultsPage({ result, onBackToScan }) {
   // Effect to handle data passed via props
   useEffect(() => {
     if (result) {
+      console.log("Analysis result received:", result);
       setAnalysisResult(result);
     }
   }, [result]);
@@ -21,31 +22,63 @@ export default function ResultsPage({ result, onBackToScan }) {
     // Get existing plants from localStorage
     const savedPlants = JSON.parse(localStorage.getItem('myPlants') || '[]');
     
-    // Create a new plant object with a simple placeholder image URL
+    // Try to get the image data
+    let imageData = '/placeholder.svg';
+    
+    // Check for image data and ensure it's a proper data URL
+    if (analysisResult.imageBase64) {
+      // Verify this is a data URL (should start with 'data:')
+      if (typeof analysisResult.imageBase64 === 'string') {
+        if (analysisResult.imageBase64.startsWith('data:')) {
+          imageData = analysisResult.imageBase64;
+          console.log("Using direct imageBase64 data");
+        } else if (analysisResult.imageBase64.startsWith('blob:')) {
+          // If we have a blob URL, we can't save it directly
+          console.error("Image is a blob URL, cannot store in localStorage");
+          // Leave as placeholder
+        }
+      }
+    }
+    
+    // Log what we're saving
+    console.log("Image data type:", typeof imageData);
+    console.log("Image data starts with:", imageData.substring(0, 30));
+    
+    // Create a simplified plant object without weather data
     const newPlant = {
       id: Date.now(),
       name: `Potato Plant ${savedPlants.length + 1}`,
       status: analysisResult.class,
       confidence: analysisResult.confidence,
-      // Use a simple placeholder image that definitely exists in the public folder
-      image: '/placeholder.svg',
-      dateAdded: new Date().toISOString(),
-      weather: {
-        temperature: '28°C',
-        humidity: 'Medium',
-        sunlight: 'Sunny',
-        watered: true
-      }
+      image: imageData,
+      dateAdded: new Date().toISOString()
     };
     
-    // Add new plant to the array
-    savedPlants.unshift(newPlant);
-    
-    // Save back to localStorage
-    localStorage.setItem('myPlants', JSON.stringify(savedPlants));
-    
-    // Update state to show saved confirmation
-    setIsSaved(true);
+    try {
+      // Add new plant to the array
+      savedPlants.unshift(newPlant);
+      
+      // Save back to localStorage
+      localStorage.setItem('myPlants', JSON.stringify(savedPlants));
+      
+      // Update state to show saved confirmation
+      setIsSaved(true);
+      console.log("Plant saved successfully with image");
+    } catch (err) {
+      // If localStorage fails (possibly due to size limits), try without the image
+      console.error("Error saving plant:", err);
+      
+      // Try again without the image
+      try {
+        newPlant.image = '/placeholder.svg';
+        savedPlants.unshift(newPlant);
+        localStorage.setItem('myPlants', JSON.stringify(savedPlants));
+        setIsSaved(true);
+        console.log("Plant saved without image due to size constraints");
+      } catch (innerErr) {
+        console.error("Failed to save plant even without image:", innerErr);
+      }
+    }
   };
 
   // Helper functions to determine UI elements based on disease class
@@ -198,6 +231,17 @@ export default function ResultsPage({ result, onBackToScan }) {
       <CardContent className="p-6">
         <h2 className="text-xl font-semibold mb-4 text-center text-green-800">Plant Health Results</h2>
 
+        {/* Display the image if available */}
+        {analysisResult.imageBase64 && (
+          <div className="mb-4 relative overflow-hidden rounded-lg" style={{ height: '200px' }}>
+            <img 
+              src={analysisResult.imageBase64} 
+              alt="Scanned Plant" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
         <div className={`${getBackgroundClass(statusColor)} rounded-lg p-4 mb-6 flex items-center gap-4`}>
           {getStatusIcon(statusColor)}
           <div>
@@ -222,14 +266,6 @@ export default function ResultsPage({ result, onBackToScan }) {
         </div>
 
         <div className="space-y-3">
-          <Button className="w-full justify-start" variant="outline">
-            <VolumeUp className="w-5 h-5 mr-2" />
-            Listen to Recommendations
-          </Button>
-          <Button className="w-full justify-start" variant="outline">
-            <Video className="w-5 h-5 mr-2" />
-            Watch Treatment Video
-          </Button>
           <Button 
             onClick={savePlant} 
             className={`w-full justify-start ${isSaved ? 'bg-green-100 text-green-800' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}

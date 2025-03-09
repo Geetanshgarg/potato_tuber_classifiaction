@@ -3,23 +3,60 @@
 import { Button } from "@/components/ui/button"
 import { Info, Trash2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import WeatherItem from "@/components/custom/weather-item"
 import { useEffect, useState } from "react"
 
 export default function PlantCard({
   name,
   status,
-  statusColor, // Add this prop
+  statusColor,
   image,
-  addedDays,
-  weatherItems,
-  showTreatment = false,
-  onTreatmentClick,
+  dateAdded,
   onDelete,
 }) {
-  const [imgSrc, setImgSrc] = useState(image || "/placeholder.svg")
+  const [imgSrc, setImgSrc] = useState('/placeholder.svg')
+  const [formattedDate, setFormattedDate] = useState('')
   
-  // Use provided statusColor or determine based on status
+  useEffect(() => {
+    // Check if image is base64 data or a URL
+    if (image && (image.startsWith('data:') || image.startsWith('/placeholder'))) {
+      setImgSrc(image);
+    } else {
+      setImgSrc('/placeholder.svg');
+    }
+
+    // Format the date when component mounts or dateAdded changes
+    if (dateAdded) {
+      try {
+        const date = new Date(dateAdded);
+        
+        // Check if the date is valid
+        if (isNaN(date.getTime())) {
+          // If invalid date string, just display the raw string
+          setFormattedDate(String(dateAdded));
+          return;
+        }
+        
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (date.toDateString() === today.toDateString()) {
+          setFormattedDate(`Today, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+        } else if (date.toDateString() === yesterday.toDateString()) {
+          setFormattedDate(`Yesterday, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+        } else {
+          setFormattedDate(`${date.toLocaleDateString()}, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+        }
+      } catch (err) {
+        // Use the raw date string as fallback instead of current time
+        setFormattedDate(String(dateAdded));
+      }
+    } else {
+      // No date provided
+      setFormattedDate("Date unavailable");
+    }
+  }, [image, dateAdded]);
+  
   const cardStatusColor = statusColor || (status?.toLowerCase() === "healthy" ? "bg-green-500" : "bg-yellow-500")
 
   // Handle image errors by setting a fallback
@@ -29,7 +66,7 @@ export default function PlantCard({
 
   return (
     <Card className="bg-white/80 backdrop-blur-sm shadow-lg overflow-hidden">
-      <div className="relative h-32">
+      <div className="relative h-40">
         <img
           src={imgSrc}
           alt={name || "Plant"}
@@ -52,29 +89,15 @@ export default function PlantCard({
         </div>
       </div>
       <CardContent className="p-4">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-center">
           <div>
             <h3 className="font-medium">{name || "Unnamed Plant"}</h3>
-            <p className="text-xs text-muted-foreground">Added: {addedDays || "Recently"}</p>
+            <p className="text-xs text-muted-foreground">Added: {formattedDate}</p>
           </div>
           <Button variant="ghost" size="icon">
             <Info className="w-5 h-5" />
           </Button>
         </div>
-
-        <div className="grid grid-cols-4 gap-2 mt-3">
-          {weatherItems?.map((item, index) => (
-            <WeatherItem key={index} icon={item.icon} label={item.label} />
-          ))}
-        </div>
-
-        {showTreatment && (
-          <Button
-            className="w-full mt-3 bg-yellow-500 hover:bg-yellow-600 text-white"
-            onClick={onTreatmentClick}>
-            View Treatment Plan
-          </Button>
-        )}
       </CardContent>
     </Card>
   );
