@@ -1,8 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Potato Tuber Disease Classifier
+
+This application allows farmers and agricultural workers to identify diseases in potato plants and tubers using AI-powered image recognition.
+
+## Features
+
+- Upload images of potato plants or tubers
+- AI-based disease classification
+- Information about common potato diseases
+- Treatment recommendations
+- User-friendly interface
 
 ## Getting Started
 
-First, run the development server:
+First, make sure you have the Python backend server running:
+
+```bash
+pip install -r requirements.txt
+python server.py
+```
+
+Then, run the Next.js development server:
 
 ```bash
 npm run dev
@@ -14,20 +31,34 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. The frontend is built with Next.js and allows users to upload images
+2. Images are sent to a Flask backend server that runs a TensorFlow model
+3. The model classifies the image into one of six categories:
+   - Early Blight
+   - Fungi
+   - Healthy
+   - Late Blight
+   - Pest
+   - Virus
+4. Results are displayed with confidence scores and treatment recommendations
+
+## Technologies Used
+
+- Next.js for the frontend
+- TailwindCSS for styling
+- Flask for the backend API
+- TensorFlow for the machine learning model
+- OpenCV for image processing
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Next.js Documentation](https://nextjs.org/docs)
+- [TensorFlow Documentation](https://www.tensorflow.org/api_docs)
+- [Flask Documentation](https://flask.palletsprojects.com/)
 
 ## Deploy on Vercel
 
