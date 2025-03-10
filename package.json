@@ -6,7 +6,13 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "analyze": "cross-env ANALYZE=true next build",
+    "postbuild": "next-sitemap",
+    "start:all": "node start.js",
+    "start:all:prod": "cross-env NODE_ENV=production node start.js",
+    "build:all": "npm run build && pip install -r requirements.txt",
+    "test:api": "curl http://localhost:8000/health"
   },
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.2",
@@ -15,8 +21,10 @@
     "axios": "^1.6.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cross-env": "^7.0.3",
     "lucide-react": "^0.479.0",
     "next": "15.2.1",
+    "next-sitemap": "^4.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.0.2",
