@@ -3,16 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --experimental-https",
+    "dev": "next dev --turbopack ",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "analyze": "cross-env ANALYZE=true next build",
-    "postbuild": "next-sitemap",
-    "start:all": "node start.js",
-    "start:all:prod": "cross-env NODE_ENV=production node start.js",
-    "build:all": "npm run build && pip install -r requirements.txt",
-    "test:api": "curl http://localhost:8000/health"
+    "lint": "next lint"
+  
   },
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.2",

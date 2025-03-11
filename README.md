@@ -12,14 +12,7 @@ This application allows farmers and agricultural workers to identify diseases in
 
 ## Getting Started
 
-First, make sure you have the Python backend server running:
-
-```bash
-pip install -r requirements.txt
-python server.py
-```
-
-Then, run the Next.js development server:
+Run the Next.js development server:
 
 ```bash
 npm run dev
@@ -36,7 +29,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## How It Works
 
 1. The frontend is built with Next.js and allows users to upload images
-2. Images are sent to a Flask backend server that runs a TensorFlow model
+2. Images are sent to your custom backend service for processing
 3. The model classifies the image into one of six categories:
    - Early Blight
    - Fungi
@@ -50,15 +43,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 - Next.js for the frontend
 - TailwindCSS for styling
-- Flask for the backend API
-- TensorFlow for the machine learning model
-- OpenCV for image processing
+- Your custom backend for image processing and classification
 
 ## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs)
-- [TensorFlow Documentation](https://www.tensorflow.org/api_docs)
-- [Flask Documentation](https://flask.palletsprojects.com/)
 
 ## Deploy on Vercel
 
