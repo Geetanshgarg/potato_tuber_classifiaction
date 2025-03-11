@@ -22,7 +22,7 @@ function startPythonServer() {
   console.log('Starting Python server...');
   
   // Always use direct Python command to run server.py
-  const pythonProcess = spawn(pythonCommand, ['server.py'], { env: pythonEnv });
+  const pythonProcess = spawn(pythonCommand, ['wsgi.py'], { env: pythonEnv });
   
   pythonProcess.stdout.on('data', (data) => {
     console.log(`[Python] ${data.toString().trim()}`);
