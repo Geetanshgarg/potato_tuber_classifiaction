@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useLanguage } from "@/contexts/LanguageContext"
 import AppHeader from "@/components/app-header"
 import AppNavigation from "@/components/app-navigation"
 import HomePage from "@/components/pages/home-page"
@@ -8,21 +9,25 @@ import ScanPage from "@/components/pages/scan-page"
 import ResultsPage from "@/components/pages/results-page"
 import VideoPage from "@/components/pages/video-page"
 import MyPlantsPage from "@/components/pages/my-plants-page"
-import GuidePage from "@/components/pages/guide-page"
 import LanguagePage from "@/components/pages/language-page"
+import AppLogo from "@/components/custom/app-logo"
 
 export default function FarmerAppUI() {
   const [currentPage, setCurrentPage] = useState("home")
-  const [currentLanguage, setCurrentLanguage] = useState("English")
+  const { language, setLanguage, t } = useLanguage()
+
+  // Optional: Change page title when app loads
+  useEffect(() => {
+    document.title = "PotatoGuard - Potato Disease Detection";
+  }, []);
 
   const pages = {
     home: <HomePage setPage={setCurrentPage} />,
     scan: <ScanPage />,
     results: <ResultsPage />,
     video: <VideoPage />,
-    plants: <MyPlantsPage />,
-    guide: <GuidePage />,
-    language: <LanguagePage setLanguage={setCurrentLanguage} setPage={setCurrentPage} />,
+    plants: <MyPlantsPage setPage={setCurrentPage} />,
+    language: <LanguagePage setLanguage={setLanguage} setPage={setCurrentPage} />,
   }
 
   return (

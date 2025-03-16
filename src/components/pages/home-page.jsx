@@ -4,9 +4,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Camera, Upload, Leaf, Video, CheckCircle, AlertTriangle, AlertCircle } from "lucide-react"
 import ActionButton from "@/components/custom/action-button"
 import ActivityItem from "@/components/custom/activity-item"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function HomePage({ setPage }) {
   const [recentActivities, setRecentActivities] = useState([]);
+  const { t } = useLanguage();
 
   // Load saved plants data on component mount
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function HomePage({ setPage }) {
         
         return {
           icon,
-          text: `${plant.status || 'Unknown condition'} detected`,
+          text: `${plant.status || t('unknownCondition')} ${t('detected')}`,
           time: timeText,
           // Add plant ID to allow navigation to details if needed
           plantId: plant.id
@@ -68,7 +70,7 @@ export default function HomePage({ setPage }) {
       console.error("Error loading plant data:", err);
       setRecentActivities([]);
     }
-  }, []);
+  }, [t]);
 
   return (
     <>
@@ -77,26 +79,26 @@ export default function HomePage({ setPage }) {
           <div className="grid grid-cols-2 gap-4">
             <ActionButton
               icon={<Camera className="w-8 h-8" />}
-              label="Take Photo"
+              label={t('takePhoto')}
               onClick={() => setPage("scan")} />
             <ActionButton
               icon={<Upload className="w-8 h-8" />}
-              label="Upload"
+              label={t('upload')}
               onClick={() => setPage("scan")} />
             <ActionButton
               icon={<Leaf className="w-8 h-8" />}
-              label="My Plants"
+              label={t('myPlants')}
               onClick={() => setPage("plants")} />
             <ActionButton
               icon={<Video className="w-8 h-8" />}
-              label="Guide"
+              label={t('guide')}
               onClick={() => setPage("guide")} />
           </div>
         </CardContent>
       </Card>
       <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4 text-center text-green-800">Recent Activity</h2>
+          <h2 className="text-xl font-semibold mb-4 text-center text-green-800">{t('recentActivity')}</h2>
           <div className="space-y-4">
             {recentActivities.length > 0 ? (
               recentActivities.map((activity, index) => (
@@ -108,7 +110,7 @@ export default function HomePage({ setPage }) {
                 />
               ))
             ) : (
-              <p className="text-center text-gray-500 py-6">No recent activity yet. Start by scanning a plant!</p>
+              <p className="text-center text-gray-500 py-6">{t('noRecentActivity')}</p>
             )}
           </div>
         </CardContent>

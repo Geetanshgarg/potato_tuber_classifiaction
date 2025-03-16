@@ -7,7 +7,8 @@ const nextConfig = {
       'vercel.app',
       'now.sh',
       'vercel-storage.com',
-      'potato-tuber-classifiaction.vercel.app' // Your specific Vercel domain once deployed
+      'potato-tuber-classifiaction.vercel.app', // Your specific Vercel domain once deployed
+      'img.youtube.com' // Added YouTube image domain
     ],
     formats: ['image/webp', 'image/avif'],
   },

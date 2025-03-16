@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button"
 import { Camera, Sun, Droplet, ThermometerSun, Wind } from "lucide-react"
 import PlantCard from "@/components/custom/plant-card"
 import { useEffect, useState } from "react"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function MyPlantsPage({ setPage }) {
+  const { t } = useLanguage();
   const [plants, setPlants] = useState([]);
   
   // Load plants from localStorage when component mounts
@@ -61,8 +63,8 @@ export default function MyPlantsPage({ setPage }) {
   return (
     <>
       <div className="mb-4">
-        <h2 className="text-xl font-semibold mb-2 text-green-800">My Plants</h2>
-        <p className="text-sm text-muted-foreground">Track and monitor your crops</p>
+        <h2 className="text-xl font-semibold mb-2 text-green-800">{t('myPlants')}</h2>
+        <p className="text-sm text-muted-foreground">{t('trackMonitor')}</p>
       </div>
       <div className="space-y-4">
         {plants.length > 0 ? (
@@ -75,10 +77,10 @@ export default function MyPlantsPage({ setPage }) {
               image={plant.image}
               dateAdded={plant.dateAdded}
               weatherItems={[
-                { icon: <Sun />, label: plant.weather?.sunlight || 'Sunny' },
-                { icon: <Droplet />, label: plant.weather?.watered ? "Watered" : "Needs Water" },
+                { icon: <Sun />, label: plant.weather?.sunlight || t('sunny') },
+                { icon: <Droplet />, label: plant.weather?.watered ? t('watered') : t('needsWater') },
                 { icon: <ThermometerSun />, label: plant.weather?.temperature || '25°C' },
-                { icon: <Wind />, label: plant.weather?.humidity || 'Medium' },
+                { icon: <Wind />, label: plant.weather?.humidity || t('medium') },
               ]}
               showTreatment={plant.status?.toLowerCase() !== "healthy"}
               onDelete={() => deletePlant(plant.id)}
@@ -86,14 +88,14 @@ export default function MyPlantsPage({ setPage }) {
           ))
         ) : (
           <div className="text-center py-6 bg-gray-50 rounded-lg">
-            <p className="text-muted-foreground mb-2">No plants added yet</p>
-            <p className="text-sm text-muted-foreground">Scan or upload a photo to add plants</p>
+            <p className="text-muted-foreground mb-2">{t('noPlantsYet')}</p>
+            <p className="text-sm text-muted-foreground">{t('scanToAddPlants')}</p>
           </div>
         )}
 
         <Button className="w-full" onClick={() => setPage("scan")}>
           <Camera className="w-5 h-5 mr-2" />
-          Add New Plant
+          {t('addNewPlant')}
         </Button>
       </div>
     </>

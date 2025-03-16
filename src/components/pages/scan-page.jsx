@@ -7,8 +7,10 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import ResultsPage from "./results-page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ScanPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("upload");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -357,20 +359,20 @@ export default function ScanPage() {
   return (
     <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
       <CardContent className="p-4 sm:p-6">
-        <h2 className="text-xl font-semibold mb-4 text-center text-green-800">Scan Your Plant</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center text-green-800">{t('scanPlant')}</h2>
         
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>{t('error')}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="upload">Upload</TabsTrigger>
-            <TabsTrigger value="camera">Camera</TabsTrigger>
+            <TabsTrigger value="upload">{t('upload')}</TabsTrigger>
+            <TabsTrigger value="camera">{t('camera')}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="mt-0">
@@ -392,7 +394,7 @@ export default function ScanPage() {
                     className="bg-white text-green-800 hover:bg-green-50"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    Select Image
+                    {t('selectImage')}
                   </Button>
                   <input 
                     type="file" 
@@ -424,7 +426,7 @@ export default function ScanPage() {
               {cameraLoading && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                   <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"></div>
-                  <p className="text-sm">Activating camera...</p>
+                  <p className="text-sm">{t('activatingCamera')}</p>
                 </div>
               )}
               
@@ -435,7 +437,7 @@ export default function ScanPage() {
                       onClick={capturePhoto}
                       className="bg-white text-green-800 hover:bg-green-50"
                     >
-                      Take Photo
+                      {t('takePhoto')}
                     </Button>
                   </div>
                   
@@ -458,7 +460,7 @@ export default function ScanPage() {
                     className="bg-white text-green-800 hover:bg-green-50"
                   >
                     <Camera className="mr-2 h-5 w-5" />
-                    {cameraTries > 0 ? "Retry Camera" : "Start Camera"}
+                    {cameraTries > 0 ? t('retryCamera') : t('startCamera')}
                   </Button>
                 </div>
               )}
@@ -466,7 +468,7 @@ export default function ScanPage() {
             
             {cameraTries > 0 && !showCamera && (
               <div className="mt-2 text-center text-sm text-amber-600">
-                Having trouble with the camera? Try using the Upload tab instead.
+                {t('cameraTrouble')}
               </div>
             )}
           </TabsContent>
@@ -481,7 +483,7 @@ export default function ScanPage() {
                 className="flex-1"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Reset
+                {t('reset')}
               </Button>
               
               <Button 
@@ -494,7 +496,7 @@ export default function ScanPage() {
                 ) : (
                   <Check className="w-4 h-4 mr-2" />
                 )}
-                Analyze
+                {t('analyze')}
               </Button>
             </div>
           )}
@@ -502,8 +504,8 @@ export default function ScanPage() {
           {loading && (
             <div className="space-y-2 py-2">
               <div className="flex justify-between text-sm">
-                <span>Analyzing image...</span>
-                <span>Please wait</span>
+                <span>{t('analyzingImage')}</span>
+                <span>{t('pleaseWait')}</span>
               </div>
               <Progress value={45} className="h-2" />
             </div>
@@ -511,8 +513,8 @@ export default function ScanPage() {
 
           {!loading && !result && !preview && (
             <div className="text-center text-sm text-muted-foreground mt-2">
-              <p>Take a clear photo of your potato tuber</p>
-              <p>Make sure it's well-lit and in focus</p>
+              <p>{t('photoInstructions')}</p>
+              <p>{t('focusInstructions')}</p>
             </div>
           )}
         </div>

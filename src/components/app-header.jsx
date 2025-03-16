@@ -1,42 +1,55 @@
 "use client"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Globe, Menu, Leaf } from "lucide-react"
-import SlidingMenu from "./sliding-menu"
+import { Globe } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import AppLogo from "@/components/custom/app-logo"
 
 export default function AppHeader({ currentPage, setCurrentPage }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { t, language } = useLanguage();
 
   const toggleMenu = () => setMenuOpen(!menuOpen)
   const closeMenu = () => setMenuOpen(false)
 
+  // Get the correct page title based on current page
+  const getPageTitle = () => {
+    switch(currentPage) {
+      case 'home':
+        return t('home');
+      case 'scan':
+        return t('scan');
+      case 'video':
+        return t('learn');
+      case 'plants':
+        return t('myPlants');
+      case 'language':
+        return t('selectLanguage');
+      default:
+        return t('home');
+    }
+  };
+
   return (
     <>
-      <header
-        className="flex justify-between items-center p-4 bg-white/80 backdrop-blur-sm shadow-sm">
-        {currentPage !== "home" && (
-          <Button variant="ghost" className={"hover:bg-green-50"} size="icon" onClick={() => setCurrentPage("home")}>
-            <ChevronLeft className="w-6 h-6" />
-          </Button>
-        )}
-        {currentPage === "home" && <Leaf className="w-10 h-10 text-green-600" />}
-        <div className="flex gap-2">
-          <Button variant="ghost" className={"hover:bg-green-50"} size="icon" onClick={() => setCurrentPage("language")}>
-            <Globe className="w-6 h-6" />
-          </Button>
-          <Button variant="ghost" className={"hover:bg-green-50"} size="icon" onClick={toggleMenu}>
-            <Menu className="w-6 h-6" />
+      <header className="bg-white shadow-sm py-4 px-4 sticky top-0 z-10">
+        <div className="flex justify-between items-center max-w-md mx-auto">
+          <div className="flex items-center gap-2" onClick={() => setCurrentPage("home")} style={{ cursor: 'pointer' }}>
+            <AppLogo />
+            <h1 className="text-lg font-semibold text-green-800">
+              {getPageTitle()}
+            </h1>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentPage("language")}
+            className="text-green-700 hover:text-green-800 hover:bg-green-50"
+          >
+            <Globe className="h-5 w-5" />
           </Button>
         </div>
       </header>
-
-      {/* Sliding Menu */}
-      <SlidingMenu 
-        isOpen={menuOpen} 
-        onClose={closeMenu} 
-        setCurrentPage={setCurrentPage}
-        currentPage={currentPage}
-      />
     </>
   );
 }

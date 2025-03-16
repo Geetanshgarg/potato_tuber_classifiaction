@@ -137,12 +137,14 @@ body {
   @apply text-xs px-3 py-1 rounded-full;
 }
 
+/* Remove guide-specific styles */
 .disease-early-blight { background-color: #ffd166; color: #433a19; }
 .disease-fungi { background-color: #8cb369; color: #ffffff; }
 .disease-healthy { background-color: #06d6a0; color: #ffffff; }
 .disease-late-blight { background-color: #ef476f; color: #ffffff; }
 .disease-pest { background-color: #118ab2; color: #ffffff; }
 .disease-virus { background-color: #073b4c; color: #ffffff; }
+.disease-bacteria { background-color: #9c6644; color: #ffffff; }
 
 .dark {
   --background: oklch(0.141 0.005 285.823);

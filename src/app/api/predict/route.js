@@ -22,7 +22,7 @@ export async function POST(request) {
     
     try {
       console.log("Sending image to prediction server...");
-      const response = await fetch('https://8c58-152-59-82-171.ngrok-free.app/api/predict', {
+      const response = await fetch('https://69bb-2405-201-5016-80ba-345e-451f-7341-f53f.ngrok-free.app/api/predict', {
         method: 'POST',
         body: serverFormData,
         signal: controller.signal

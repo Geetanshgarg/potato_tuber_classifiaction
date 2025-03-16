@@ -1,11 +1,36 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, VolumeIcon as VolumeUp, Video, Leaf, Check, AlertCircle, Save } from "lucide-react"
+import { AlertTriangle, VolumeIcon as VolumeUp, Video, Leaf, Check, AlertCircle, Save, Info } from "lucide-react"
 import { useState, useEffect } from 'react';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ResultsPage({ result, onBackToScan }) {
+  const { t, language } = useLanguage();
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const [showLangSupport, setShowLangSupport] = useState(false);
+  
+  // Effect to load available speech synthesis voices
+  useEffect(() => {
+    if (window.speechSynthesis) {
+      // Get available voices
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        setAvailableVoices(voices);
+        console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+      };
+      
+      // Load voices (Chrome needs the event listener, Firefox has them immediately)
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      
+      return () => {
+        window.speechSynthesis.onvoiceschanged = null;
+      };
+    }
+  }, []);
   
   // Effect to handle data passed via props
   useEffect(() => {
@@ -14,6 +39,15 @@ export default function ResultsPage({ result, onBackToScan }) {
       setAnalysisResult(result);
     }
   }, [result]);
+
+  // Clean up speech synthesis when component unmounts
+  useEffect(() => {
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Function to save plant data to localStorage
   const savePlant = () => {
@@ -78,6 +112,115 @@ export default function ResultsPage({ result, onBackToScan }) {
       } catch (innerErr) {
         console.error("Failed to save plant even without image:", innerErr);
       }
+    }
+  };
+
+  // Find best matching voice for the current language
+  const findVoiceForLanguage = (langCode) => {
+    if (!window.speechSynthesis || availableVoices.length === 0) return null;
+    
+    // Look for exact match
+    let voice = availableVoices.find(v => v.lang === langCode);
+    
+    // If no exact match, try to find a voice that starts with the language code
+    if (!voice) {
+      const langPrefix = langCode.split('-')[0];
+      voice = availableVoices.find(v => v.lang.startsWith(langPrefix));
+    }
+    
+    // If still no match, use default voice
+    return voice || null;
+  };
+
+  // Function to speak recommendations
+  const speakRecommendations = () => {
+    if (!window.speechSynthesis) {
+      console.error("Speech synthesis not supported");
+      return;
+    }
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    // Get recommendations based on disease class
+    const recommendations = getRecommendations(analysisResult.class);
+    
+    // Create text to speak
+    let textToSpeak;
+    
+    // Handle English differently from other languages
+    if (language === 'English') {
+      textToSpeak = `${t('recommendedActions')}: ${recommendations.join(". ")}`;
+    } else {
+      // Just the recommendations without colons for non-English languages
+      textToSpeak = `${recommendations.join(" ")}`;
+      
+      // Show language support notice
+      setShowLangSupport(true);
+      
+      // Auto-hide the notice after 5 seconds
+      setTimeout(() => {
+        setShowLangSupport(false);
+      }, 5000);
+    }
+    
+    // Create utterance
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    
+    // Set language based on current app language
+    switch (language) {
+      case 'Hindi':
+        utterance.lang = 'hi-IN';
+        break;
+      case 'Telugu':
+        utterance.lang = 'te-IN';
+        break;
+      case 'Marathi':
+        utterance.lang = 'mr-IN';
+        break;
+      case 'Gujarati':
+        utterance.lang = 'gu-IN';
+        break;
+      case 'Punjabi':
+        utterance.lang = 'pa-IN';
+        break;
+      default:
+        utterance.lang = 'en-US';
+    }
+    
+    // Fallback mechanism - if speech doesn't start in a second, try English
+    const speechTimer = setTimeout(() => {
+      if (isSpeaking && language !== 'English') {
+        console.log("Speech not working in selected language, falling back to English");
+        window.speechSynthesis.cancel();
+        const fallbackUtterance = new SpeechSynthesisUtterance(textToSpeak);
+        fallbackUtterance.lang = 'en-US';
+        fallbackUtterance.onend = () => setIsSpeaking(false);
+        window.speechSynthesis.speak(fallbackUtterance);
+      }
+    }, 1000);
+    
+    // Set speaking state
+    setIsSpeaking(true);
+    
+    // Add event listener for when speech ends
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      clearTimeout(speechTimer);
+    };
+    
+    // Log speech attempt
+    console.log(`Speaking in ${utterance.lang}`, textToSpeak);
+    
+    // Speak
+    window.speechSynthesis.speak(utterance);
+  };
+  
+  // Stop speaking
+  const stopSpeaking = () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
     }
   };
 
@@ -150,56 +293,63 @@ export default function ResultsPage({ result, onBackToScan }) {
     
     const lowerClass = className.toLowerCase();
     
-    // Existing recommendations
+    // Return translated recommendations based on condition
     if (lowerClass.includes("healthy")) {
       return [
-        "Continue regular watering schedule",
-        "Apply balanced fertilizer as needed",
-        "Monitor for any changes in plant health"
+        t('recommendHealthy1'),
+        t('recommendHealthy2'),
+        t('recommendHealthy3'),
+        t('recommendHealthy4')
       ];
     } else if (lowerClass.includes("early blight")) {
       return [
-        "Remove and destroy affected leaves",
-        "Apply copper-based fungicide",
-        "Improve air circulation around plants"
+        t('recommendEarlyBlight1'),
+        t('recommendEarlyBlight2'),
+        t('recommendEarlyBlight3'),
+        t('recommendEarlyBlight4')
       ];
     } else if (lowerClass.includes("late blight")) {
       return [
-        "Remove and destroy all infected plant material immediately",
-        "Apply fungicide with active ingredients specific for late blight",
-        "Increase plant spacing for better air circulation"
+        t('recommendLateBlight1'),
+        t('recommendLateBlight2'),
+        t('recommendLateBlight3'),
+        t('recommendLateBlight4')
       ];
     } else if (lowerClass.includes("fungi")) {
       return [
-        "Apply appropriate fungicide treatment",
-        "Reduce humidity around plants",
-        "Avoid overhead watering"
+        t('recommendFungal1'),
+        t('recommendFungal2'),
+        t('recommendFungal3'),
+        t('recommendFungal4')
       ];
-    } else if (lowerClass.includes("pest")) {
+    } else if (lowerClass.includes("pest") || lowerClass.includes("insect")) {
       return [
-        "Apply appropriate organic or chemical insecticide",
-        "Introduce beneficial insects if applicable",
-        "Remove severely damaged plant parts"
+        t('recommendInsect1'),
+        t('recommendInsect2'),
+        t('recommendInsect3'),
+        t('recommendInsect4')
       ];
-    } else if (lowerClass.includes("virus")) {
+    } else if (lowerClass.includes("virus") || lowerClass.includes("mosaic")) {
       return [
-        "Remove infected plants to prevent spread",
-        "Control insect vectors with appropriate insecticides",
-        "Sanitize tools and equipment"
+        t('recommendViral1'),
+        t('recommendViral2'),
+        t('recommendViral3'),
+        t('recommendViral4')
       ];
-    } else if (lowerClass.includes("bacteria")) {
+    } else if (lowerClass.includes("bacteria") || lowerClass.includes("bacterial")) {
       return [
-        "Remove and destroy infected plants",
-        "Apply copper-based bactericides",
-        "Avoid working with plants when wet",
-        "Practice crop rotation in future plantings"
+        t('recommendBacterial1'),
+        t('recommendBacterial2'),
+        t('recommendBacterial3'),
+        t('recommendBacterial4')
       ];
     }
     
     return [
-      "Consult with an agricultural expert",
-      "Take multiple photos from different angles",
-      "Monitor plant for any changes in symptoms"
+      t('recommendDefault1'),
+      t('recommendDefault2'),
+      t('recommendDefault3'),
+      t('recommendDefault4')
     ];
   };
   
@@ -208,14 +358,14 @@ export default function ResultsPage({ result, onBackToScan }) {
     return (
       <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
         <CardContent className="p-6 text-center">
-          <h2 className="text-xl font-semibold mb-4 text-center text-green-800">Loading Results</h2>
-          <p>Please wait while we load your results...</p>
+          <h2 className="text-xl font-semibold mb-4 text-center text-green-800">{t('loadingResults')}</h2>
+          <p>{t('pleaseWaitResults')}</p>
           <Button 
             className="mt-4"
             variant="outline"
             onClick={onBackToScan}
           >
-            Back to Scan
+            {t('backToScan')}
           </Button>
         </CardContent>
       </Card>
@@ -229,7 +379,7 @@ export default function ResultsPage({ result, onBackToScan }) {
   return (
     <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4 text-center text-green-800">Plant Health Results</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center text-green-800">{t('plantHealthResults')}</h2>
 
         {/* Display the image if available */}
         {analysisResult.imageBase64 && (
@@ -254,7 +404,7 @@ export default function ResultsPage({ result, onBackToScan }) {
         </div>
 
         <div className="mb-6">
-          <h3 className="font-medium mb-2 text-green-800">Recommended Actions:</h3>
+          <h3 className="font-medium mb-2 text-green-800">{t('recommendedActions')}:</h3>
           <ul className="space-y-2 text-sm">
             {recommendations.map((rec, index) => (
               <li key={index} className="flex items-start gap-2">
@@ -263,6 +413,24 @@ export default function ResultsPage({ result, onBackToScan }) {
               </li>
             ))}
           </ul>
+          
+          {/* Language support notice */}
+          {showLangSupport && (
+            <div className="mt-2 text-xs flex items-center gap-1 text-blue-600">
+              <Info className="w-3 h-3" />
+              <span>Your browser may have limited speech support for this language.</span>
+            </div>
+          )}
+          
+          {/* Listen to recommendations button */}
+          <Button 
+            onClick={isSpeaking ? stopSpeaking : speakRecommendations}
+            className="w-full mt-3 justify-start bg-purple-600 hover:bg-purple-700 text-white"
+            variant="secondary"
+          >
+            <VolumeUp className={`w-5 h-5 mr-2 ${isSpeaking ? 'animate-pulse' : ''}`} />
+            {isSpeaking ? t('pleaseWait') : t('listenRecommendations')}
+          </Button>
         </div>
 
         <div className="space-y-3">
@@ -272,13 +440,13 @@ export default function ResultsPage({ result, onBackToScan }) {
             disabled={isSaved}
           >
             <Save className="w-5 h-5 mr-2" />
-            {isSaved ? 'Plant Saved' : 'Save Plant'}
+            {isSaved ? t('plantSaved') : t('saveToPlants')}
           </Button>
           <Button
             onClick={onBackToScan}
             className="w-full justify-start bg-green-600 hover:bg-green-700 text-white">
             <Leaf className="w-5 h-5 mr-2" />
-            Scan Another Plant
+            {t('scanAnotherPlant')}
           </Button>
         </div>
       </CardContent>
